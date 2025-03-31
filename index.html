@@ -3,19 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>To-Do List</title>
 </head>
 <body>
-    <h1>
-        My To-Do List
-    </h1>
-    <div class="form">
-        <input type="string" required id="poopy poop" class="peepee">
-        <input type="submit" value="Add" class="guessSubmit">
-      </div>
-
-      <script>
-        
-      </script>
+    <h1>My To-Do List</h1>
+    <div>
+        <input type="text" id="taskInput">
+        <button id="addTask">Add</button>
+    </div>
+    <div id="todoItems"></div> 
+    
+    <script>
+        let todos = JSON.parse(localStorage.getItem("todos")) || [];
+    
+        function updateTasks() {
+            let todoDiv = document.getElementById("todoItems");
+            todoDiv.innerHTML = "";
+            for (let i = 0; i < todos.length; i++) {
+                let taskDiv = document.createElement("div");
+                taskDiv.textContent = todos[i];
+    
+                let removeBtn = document.createElement("button");
+                removeBtn.textContent = "Remove";
+                removeBtn.onclick = function() {
+                    todos.splice(i, 1);
+                    localStorage.setItem("todos", JSON.stringify(todos));
+                    updateTasks();
+                };
+    
+                taskDiv.appendChild(removeBtn);
+                todoDiv.appendChild(taskDiv);
+            }
+        }
+    
+        document.getElementById("addTask").onclick = function() {
+            let taskInput = document.getElementById("taskInput");
+            let task = taskInput.value.trim();
+            if (task !== "" && todos.indexOf(task) === -1) {
+                todos.push(task);
+                localStorage.setItem("todos", JSON.stringify(todos));
+                taskInput.value = "";
+                updateTasks();
+            } else {
+                alert("Invalid or duplicate task");
+            }
+        };
+    
+        updateTasks();
+    </script>
+    
 </body>
 </html>
