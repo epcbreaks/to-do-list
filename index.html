@@ -8,17 +8,20 @@
 <body>
     <h1>My To-Do List</h1>
     <div>
-        <input type="text" id="taskInput">
-        <button id="addTask">Add</button>
+        <input type="text" id="todo-text">
+        <button id="todo-add">Add</button>
     </div>
-    <div id="todoItems"></div> 
+    <div id="todo-item"></div> 
     
     <script>
-        let todos = JSON.parse(localStorage.getItem("todos")) || [];
+        let todos = JSON.parse(localStorage.getItem("todos")) |[];
     
         function updateTasks() {
-            let todoDiv = document.getElementById("todoItems");
+           
+            let todoDiv = document.getElementById("todo-item");
+           
             todoDiv.innerHTML = "";
+           
             for (let i = 0; i < todos.length; i++) {
                 let taskDiv = document.createElement("div");
                 taskDiv.textContent = todos[i];
@@ -26,25 +29,33 @@
                 let removeBtn = document.createElement("button");
                 removeBtn.textContent = "Remove";
                 removeBtn.onclick = function() {
+                
                     todos.splice(i, 1);
                     localStorage.setItem("todos", JSON.stringify(todos));
                     updateTasks();
                 };
     
+                
                 taskDiv.appendChild(removeBtn);
+                
                 todoDiv.appendChild(taskDiv);
             }
         }
     
-        document.getElementById("addTask").onclick = function() {
-            let taskInput = document.getElementById("taskInput");
+        document.getElementById("todo-add").onclick = function() {
+            
+            let taskInput = document.getElementById("todo-text");
+            
             let task = taskInput.value.trim();
-            if (task !== "" && todos.indexOf(task) === -1) {
+            
+            if (
+                task !== "" && todos.indexOf(task) === -1) {
                 todos.push(task);
                 localStorage.setItem("todos", JSON.stringify(todos));
                 taskInput.value = "";
                 updateTasks();
-            } else {
+            } 
+            else {
                 alert("Invalid or duplicate task");
             }
         };
