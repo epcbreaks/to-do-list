@@ -14,7 +14,7 @@
     <div id="todo-item"></div> 
     
     <script>
-        let todos = JSON.parse(localStorage.getItem("todos")) |[];
+        let todos = JSON.parse(localStorage.getItem("todos")) ||[];
     
         function updateTasks() {
            
