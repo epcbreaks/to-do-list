@@ -1,67 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My To-Do List</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body { margin-bottom: 70px; }
+    .dark-mode { background-color: #121212; color: white; }
+    footer {
+      background: purple;
+      color: white;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      padding: 10px 0;
+    }
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 25px;
+      background: gray;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+    .toggle-switch:before {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2.5px;
+      left: 5px;
+      transition: 0.3s;
+    }
+    .toggle-switch.dark:before {
+      left: 25px;
+      background: yellow;
+    }
+  </style>
 </head>
 <body>
-    <h1>My To-Do List</h1>
-    <div>
-        <input type="text" id="todo-text">
-        <button id="todo-add">Add</button>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">My To-Do List</h1>
+    <div class="toggle-container">
+      <span id="mode-text">Light</span>
+      <div id="toggle-dark" class="toggle-switch"></div>
     </div>
-    <div id="todo-item"></div> 
-    
-    <script>
-        let todos = JSON.parse(localStorage.getItem("todos")) ||[];
-    
-        function updateTasks() {
-           
-            let todoDiv = document.getElementById("todo-item");
-           
-            todoDiv.innerHTML = "";
-           
-            for (let i = 0; i < todos.length; i++) {
-                let taskDiv = document.createElement("div");
-                taskDiv.textContent = todos[i];
-    
-                let removeBtn = document.createElement("button");
-                removeBtn.textContent = "Remove";
-                removeBtn.onclick = function() {
-                
-                    todos.splice(i, 1);
-                    localStorage.setItem("todos", JSON.stringify(todos));
-                    updateTasks();
-                };
-    
-                
-                taskDiv.appendChild(removeBtn);
-                
-                todoDiv.appendChild(taskDiv);
-            }
+    <p id="current-date" class="text-center"></p>
+    <select id="task-day" class="form-select mb-3">
+      <option>Monday</option>
+      <option>Tuesday</option>
+      <option>Wednesday</option>
+      <option>Thursday</option>
+      <option>Friday</option>
+      <option>Saturday</option>
+      <option>Sunday</option>
+    </select>
+    <div class="input-group mb-3">
+      <input type="text" id="todo-text" class="form-control" placeholder="Enter your task">
+      <button id="todo-add" class="btn btn-primary">Add Task</button>
+    </div>
+    <div class="mb-3">
+      <button id="clear-all" class="btn btn-warning">Clear All Tasks</button>
+    </div>
+    <div id="todo-item"></div>
+  </div>
+  <footer>
+    <p id="bible-verse"></p>
+  </footer>
+  <script>
+    const toggleDarkMode = document.getElementById("toggle-dark");
+    const modeText = document.getElementById("mode-text");
+
+    toggleDarkMode.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      toggleDarkMode.classList.toggle("dark");
+      modeText.textContent = document.body.classList.contains("dark-mode") ? "Dark" : "Light";
+    });
+
+    const stored = localStorage.getItem("todos");
+    const todos = stored ? JSON.parse(stored) : {};
+
+    const updateTasks = () => {
+      const container = document.getElementById("todo-item");
+      container.innerHTML = "";
+      
+      Object.keys(todos).forEach(day => {
+        if (todos[day].length) {
+          const dayHeader = document.createElement("h3");
+          dayHeader.textContent = day;
+          container.appendChild(dayHeader);
+
+          todos[day].forEach((task, index) => {
+            const taskDiv = document.createElement("div");
+            taskDiv.className = "d-flex align-items-center mb-2";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "me-2";
+            checkbox.addEventListener("change", () => {
+              if (checkbox.checked) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            });
+
+            const taskText = document.createElement("span");
+            taskText.textContent = task;
+
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = "Remove";
+            removeBtn.className = "btn btn-danger btn-sm ms-3";
+            removeBtn.addEventListener("click", () => {
+              todos[day].splice(index, 1);
+              if (!todos[day].length) delete todos[day];
+              localStorage.setItem("todos", JSON.stringify(todos));
+              updateTasks();
+            });
+
+            taskDiv.append(checkbox, taskText, removeBtn);
+            container.appendChild(taskDiv);
+          });
         }
-    
-        document.getElementById("todo-add").onclick = function() {
-            
-            let taskInput = document.getElementById("todo-text");
-            
-            let task = taskInput.value.trim();
-            
-            if (
-                task !== "" && todos.indexOf(task) === -1) {
-                todos.push(task);
-                localStorage.setItem("todos", JSON.stringify(todos));
-                taskInput.value = "";
-                updateTasks();
-            } 
-            else {
-                alert("Invalid or duplicate task");
-            }
-        };
-    
+      });
+    };
+
+    document.getElementById("todo-add").addEventListener("click", () => {
+      const taskInput = document.getElementById("todo-text");
+      const day = document.getElementById("task-day").value;
+      const task = taskInput.value.trim();
+
+      if (task) {
+        if (!todos[day]) todos[day] = [];
+        todos[day].push(task);
+        localStorage.setItem("todos", JSON.stringify(todos));
+        taskInput.value = "";
         updateTasks();
-    </script>
-    
+      }
+    });
+
+    document.getElementById("clear-all").addEventListener("click", () => {
+      if (confirm("Clear all tasks?")) {
+        Object.keys(todos).forEach(day => delete todos[day]);
+        localStorage.removeItem("todos");
+        updateTasks();
+      }
+    });
+
+    const today = new Date();
+    document.getElementById("current-date").textContent = today.toDateString();
+    updateTasks();
+
+    const bibleVerses = [
+      { verse: "For God so loved the world...", reference: "John 3:16" },
+      { verse: "I can do all things through him who strengthens me.", reference: "Philippians 4:13" },
+      { verse: "For I know the plans I have for you...", reference: "Jeremiah 29:11" },
+      { verse: "The LORD is my shepherd; I shall not want.", reference: "Psalm 23:1" },
+      { verse: "Trust in the LORD with all your heart...", reference: "Proverbs 3:5" },
+      { verse: "Come to me, all who labor...", reference: "Matthew 11:28" }
+    ];
+
+    const todaysVerse = bibleVerses[new Date().getDay() % bibleVerses.length];
+    document.getElementById("bible-verse").textContent = `${todaysVerse.verse} — ${todaysVerse.reference}`;
+  </script>
 </body>
 </html>
